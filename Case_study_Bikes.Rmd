@@ -13,7 +13,7 @@ output:
 
 
 ## Introduction:
-*Cyclistic* is fictional bike-sharing company based in Chicago. In my role as a junior data analyst I will solve the business task assigned to me i.e. *How do annual members and casual riders use Cyclistic bikes differently?* I would do so by using the 6 Steps of Data Analysis learned throughout the course: Ask,Prepare,Process,Analyze, Share, and Act.
+*Cyclistic* is fictional bike-sharing company based in Chicago. In my role as a junior data analyst I will solve the business task assigned to me by the Marketing Director, *How do annual members and casual riders use Cyclistic bikes differently?* I would do so by using the 6 Steps of Data Analysis learned throughout the course: Ask,Prepare,Process,Analyze, Share, and Act.
 
 ## Scenario
 The director of marketing believes the company’s future success depends on maximizing the number of annual memberships. Therefore, my team wants to understand how casual riders and annual members use Cyclistic bikes differently. From these insights, my team will design a new marketing strategy to convert casual riders into annual members. In order for my recommendations to be approved, they must be backed up with compelling data insights and professional data visualizations.
@@ -46,6 +46,8 @@ library(dplyr)
 library(readr)
 library(hms)
 library(lubridate)
+library(ggmap)
+library(ggthemes)
 ```
 **Loading the necessary packages**
 
@@ -57,7 +59,8 @@ df <- readr::read_csv(data_list, id = "file_name") #I am reading in the csv file
 
 df<-df[order(as.Date(df$started_at, format="%Y-%m-%d")),] #sorted the date using the started at column
 
-df<-df %>% select(-file_name,-ride_id)#removing the file_name,ride_id columns
+df<-df %>% select(-file_name,-ride_id,
+                  -start_station_id,-end_station_id)#removing the file_name,ride_id columns,start id, end id
 
 df$date <- as.Date(df$started_at) #The default format is yyyy-mm-dd
 df$day <- format(as.Date(df$date), "%d")
@@ -105,6 +108,84 @@ There are around four hundred thousand rows and 17 columns. There are no empty c
 
 
 # 4.Analyze
+
+
+```{r, echo=FALSE}
+chicago <- get_stamenmap(bbox = c(left = -87.6470, bottom = 41.8814, 
+                                  right = -87.6034, top = 41.8996),
+                         maptype = "terrain",
+                         zoom = 15)
+ggmap(chicago)
+```
+
+
+**Zoomed map of Chicago with some street names**
+
+
+
+
+
+```{r, echo=FALSE}
+
+July<-df %>% filter(between(date, as.Date('2021-07-01'), as.Date('2021-07-31')))
+
+ggmap(chicago)+
+  geom_point(data=July,
+             aes(x=start_lng,
+                 y=start_lat),
+             alpha = 0.05,
+            
+             size=0.2)+
+ 
+   geom_point(data=July,
+             aes(x=end_lng,
+                 y=end_lat),
+             alpha = 0.05,
+             
+             size=0.2)+
+
+  theme_map()
+
+```
+
+
+**Bike rental density during July**
+
+
+
+
+
+
+```{r, echo=FALSE}
+December<- df %>% filter(date > '2021-12-01')
+
+ggmap(chicago)+
+  geom_point(data=December,
+             aes(x=start_lng,
+                 y=start_lat),
+             alpha = 0.05,
+            
+             size=0.2)+
+ 
+   geom_point(data=December,
+             aes(x=end_lng,
+                 y=end_lat),
+             alpha = 0.05,
+             
+             size=0.2)+
+
+  theme_map()
+
+```
+
+
+**Bike rental density during December**
+
+
+
+
+
+
 
 ```{r ,message=FALSE ,warning=FALSE}
 summary(df$ride_length/60)#summary of ride_length in minutes
@@ -234,6 +315,8 @@ During this phase, the results of my analysis can be shared with stakeholders, i
 # 6.Act
 There are a few recommendations for the stakeholders involved.
 Since, according to my analysis, the number of members soar during the summer months(June to September) Cyclistic can offer attractive membership packages. These campaigns would be better of during the weekends, since weekends have the highest amount of casual riders. Moreover, extra benefits can be provided to the members, which in turn will attract more casual riders to convert to members.  
+Furthermore, bike usage density represented in the city map will provided accurate suggestions about where to put billboards etc. 
+
 
 
 **Misc: We can add even more visuals with the help of map functions, to see the geolocations of the most used ride locations.**
