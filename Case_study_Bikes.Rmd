@@ -1,0 +1,239 @@
+---
+title: "Cyclistic Bike Sharing: 2021"
+author: "Syed Amjad Ali"
+date: "2023-01-06"
+output: 
+ html_document:
+    code_folding: show
+    toc: true
+    toc_depth: 2
+  
+---
+
+
+
+## Introduction:
+*Cyclistic* is fictional bike-sharing company based in Chicago. In my role as a junior data analyst I will solve the business task assigned to me i.e. *How do annual members and casual riders use Cyclistic bikes differently?* I would do so by using the 6 Steps of Data Analysis learned throughout the course: Ask,Prepare,Process,Analyze, Share, and Act.
+
+## Scenario
+The director of marketing believes the company’s future success depends on maximizing the number of annual memberships. Therefore, my team wants to understand how casual riders and annual members use Cyclistic bikes differently. From these insights, my team will design a new marketing strategy to convert casual riders into annual members. In order for my recommendations to be approved, they must be backed up with compelling data insights and professional data visualizations.
+
+
+
+## About the Company
+In 2016, Cyclistic launched a successful bike-share offering. Since then, the program has grown to a fleet of 5,824 bicycles that are geotracked and locked into a network of 692 stations across Chicago. The bikes can be unlocked from one station and returned to any other station in the system anytime.
+Until now, Cyclistic’s marketing strategy relied on building general awareness and appealing to broad consumer segments. One approach that helped make these things possible was the flexibility of its pricing plans: single-ride passes, full-day passes, and annual memberships. Customers who purchase single-ride or full-day passes are referred to as casual riders. Customers who purchase annual memberships are Cyclistic members.
+
+# 1.Ask
+How do annual members and casual riders use Cyclistic bikes differently?
+
+# 2.Prepare
+I will use Cyclistic’s historical trip data to analyze and identify trends. I will download the data sets of the 12 months of 2021 from [here](https://divvy-tripdata.s3.amazonaws.com/index.html). The data has been made available by Motivate International Inc. under this [license](https://ride.divvybikes.com/data-license-agreement).
+The data follows ROCCC i.e.  
+Reliable - YES, data is accurate, complete, and unbiased  
+Original - YES, we can locate the original, public data source  Comprehensive - YES, information is complete and extensive  
+Current - YES, data is updated monthly  
+Cited - YES
+
+# 3.Process
+I have chosen R to process and analyze the data due to several reasons. The data has hundreds of thousands of rows and many columns. R is very suitable for wrangling huge data sets such as this one, and also there is a large collection of packages that will help analyze the data more robustly.
+
+**You can choose to hide or show code**
+
+```{r,message=FALSE, warning=FALSE}
+library(tidyverse) 
+library(dplyr)
+library(readr)
+library(hms)
+library(lubridate)
+```
+**Loading the necessary packages**
+
+
+```{r,message=FALSE, warning=FALSE }
+
+data_list <- list.files( pattern = "*.csv")  #There are 12 csv files in this directory for each of the months in 2021
+df <- readr::read_csv(data_list, id = "file_name") #I am reading in the csv files for 12 months in a single data frame.
+
+df<-df[order(as.Date(df$started_at, format="%Y-%m-%d")),] #sorted the date using the started at column
+
+df<-df %>% select(-file_name,-ride_id)#removing the file_name,ride_id columns
+
+df$date <- as.Date(df$started_at) #The default format is yyyy-mm-dd
+df$day <- format(as.Date(df$date), "%d")
+df$month <- format(as.Date(df$date), "%m")
+#df$year <- format(as.Date(df$date), "%Y")
+df$day_of_week <- format(as.Date(df$date), "%A")
+#Adding separate columns for day of week , month, etc
+#this will help in our analysis later. 
+
+df$ride_length <- difftime(df$ended_at,df$started_at)
+#ride_length column is the duration of a ride
+
+#str(df) #checking for structure of all the coloumns 
+
+
+#is.factor(df$ride_length)
+df$ride_length <-as.numeric(as.character(df$ride_length))
+#conversion from factor to numeric to be able to perform calculations
+#is.numeric(df$ride_length)
+
+#So now lets clean the data even more
+#Let's check for negative durations or any other
+#unnessary data. 
+
+#df %>% count(ride_length<0,sort = TRUE)
+#there seems to be 147 such cells. 
+
+df<- df[!(df$start_station_name == "HQ QR" |df$ride_length<0),] #removing negative ride_length and start station HQ QR, which is the times when the bikes were taken for
+#servicing etc
+
+df<-df[!(df$rideable_type=="docked_bike"),] #Removing docked bike, since the two main bike types are electric and classic
+
+df<-na.omit(df) #getting rid of cells containing "na" values
+
+# Notice that the days of the week are out of order. Let's fix that.
+df$day_of_week <- ordered(df$day_of_week, levels=c("Sunday", 
+                 "Monday", "Tuesday", "Wednesday", "Thursday", 
+                 "Friday", "Saturday"))
+
+df
+```
+
+**The data is now clean and ready for the next phase:Analyze.
+There are around four hundred thousand rows and 17 columns. There are no empty cells, or negative time duration. There are two bike types i.e. Classic and Electric. There are separate columns for days of the week, month etc for the ease of analyzing.Furthermore, there are lat-lon data for each ride, this can be later used to represent a map-based visualization**
+
+
+# 4.Analyze
+
+```{r ,message=FALSE ,warning=FALSE}
+summary(df$ride_length/60)#summary of ride_length in minutes
+
+
+```
+
+**Standard summary of ride duration in minutes.**
+
+
+
+
+
+
+
+
+
+```{r, message=FALSE ,warning=FALSE}
+aggregate(df$ride_length/60 ~ df$member_casual, FUN = mean)
+```
+
+**The average ride duration in minutes for casual riders is 24.3 minutes, and for members is 13.18 minutes.**
+
+
+
+
+
+
+
+
+
+```{r, message=FALSE, warning=FALSE}
+
+aggregate(df$ride_length/60 ~ df$member_casual + 
+            df$day_of_week, FUN = mean)
+```
+
+**Average ride duration by day for members vs casual users**
+
+
+
+
+
+
+
+
+
+```{r, message=FALSE ,warning=FALSE}
+# analyze ridership data by type and weekday
+df %>% 
+  mutate(weekday = wday(started_at, label = TRUE)) %>%  #creates weekday field using wday()
+  group_by(member_casual, weekday) %>%  #groups by user type and weekday
+  summarise(number_of_rides = n()							#calculates the number of rides and average duration 
+            ,average_duration = mean(ride_length)) %>% 		# calculates the average duration
+  arrange(member_casual, weekday)
+```
+
+ 
+
+
+
+
+
+
+
+
+
+
+
+```{r ,message=FALSE ,warning=FALSE}
+# Let's visualize the number of rides by rider type per week day
+df %>% 
+  mutate(weekday = wday(started_at, label = TRUE)) %>% 
+  group_by(member_casual, weekday) %>% 
+  summarise(number_of_rides = n()/1000,
+            average_duration = mean(ride_length)) %>% 
+  arrange(member_casual, weekday)  %>% 
+  ggplot(aes(x = weekday, y = number_of_rides, fill = member_casual)) +
+  geom_col(position = "dodge")
+
+
+```
+
+**The number of casual riders are more on weekends. The amount of member riders are consistent throughout the week, and a little less in the weekends.**
+
+
+```{r ,message=FALSE, warning=FALSE}
+#Let's visualize the number of rides by rider type per month
+df %>% 
+  #mutate(weekday = wday(started_at, label = TRUE)) %>% 
+  group_by(member_casual, month) %>% 
+  summarise(number_of_rides = n()/1000,
+            average_duration = mean(ride_length)) %>% 
+  arrange(member_casual, month)  %>% 
+  ggplot(aes(x = month, y = number_of_rides, fill = member_casual)) +
+  geom_col(position = "dodge")
+```
+
+
+**The months of June through September see the highest volume of riders.**
+
+
+
+
+```{r, message=FALSE, warning=FALSE}
+# Let's create a visualization for average duration
+df %>% 
+  mutate(weekday = wday(started_at, label = TRUE)) %>% 
+  group_by(member_casual, weekday) %>% 
+  summarise(number_of_rides = n()
+            ,average_duration = mean(ride_length)/60) %>% 
+  arrange(member_casual, weekday)  %>% 
+  ggplot(aes(x = weekday, y = average_duration, fill = member_casual)) +
+  geom_col(position = "dodge")
+```
+
+
+**Casual riders use the bikes for longer duration throughout the week.** 
+
+
+
+
+
+# 5.Share 
+During this phase, the results of my analysis can be shared with stakeholders, i.e. the Marketing Director, Cyclistic marketing analytics team and Cyclistic executive team.
+
+# 6.Act
+There are a few recommendations for the stakeholders involved.
+Since, according to my analysis, the number of members soar during the summer months(June to September) Cyclistic can offer attractive membership packages. These campaigns would be better of during the weekends, since weekends have the highest amount of casual riders. Moreover, extra benefits can be provided to the members, which in turn will attract more casual riders to convert to members.  
+
+
+**Misc: We can add even more visuals with the help of map functions, to see the geolocations of the most used ride locations.**
