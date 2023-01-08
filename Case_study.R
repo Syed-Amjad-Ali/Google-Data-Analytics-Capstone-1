@@ -56,31 +56,16 @@ df$day_of_week <- ordered(df$day_of_week, levels=c("Sunday",
 df
 
 #------
-chicago <- get_stamenmap(bbox = c(left = -87.6470, bottom = 41.8814, 
-                                  right = -87.6034, top = 41.8996),
-                         maptype = "terrain",
-                         zoom = 15)
+chicago <- get_stamenmap(bbox = c(left = , bottom , 
+                                  right = , top = ),
+                         maptype = ,
+                         zoom = )
 ggmap(chicago)
 
 #--------
 July<-df %>% filter(between(date, as.Date('2021-07-01'), as.Date('2021-07-31')))
 
-ggmap(chicago)+
-  geom_point(data=July,
-             aes(x=start_lng,
-                 y=start_lat),
-             alpha = 0.05,
-             
-             size=0.2)+
-  
-  geom_point(data=July,
-             aes(x=end_lng,
-                 y=end_lat),
-             alpha = 0.05,
-             
-             size=0.2)+
-  
-  theme_map()
+
 
 
 
@@ -100,22 +85,7 @@ ggmap(chicago)+
 #-------
 December<- df %>% filter(date > '2021-12-01')
 
-ggmap(chicago)+
-  geom_point(data=December,
-             aes(x=start_lng,
-                 y=start_lat),
-             alpha = 0.05,
-             
-             size=0.2)+
-  
-  geom_point(data=December,
-             aes(x=end_lng,
-                 y=end_lat),
-             alpha = 0.05,
-             
-             size=0.2)+
-  
-  theme_map()
+
 
 #------
 summary(df$ride_length/60)#summary of ride_length in minutes
