@@ -111,13 +111,13 @@ There are around four hundred thousand rows and 17 columns. There are no empty c
 
 
 ```{r, echo=FALSE}
-chicago <- get_stamenmap(bbox = c(left = , bottom = , 
-                                  right = , top = ),
-                         maptype = ,
-                         zoom = )
+chicago <- get_stamenmap(bbox = c(left = -87.7287, bottom = 41.8472, 
+                                  right = -87.6113, top = 41.9145),
+                         maptype = "terrain",
+                         zoom = 13)
+
+
 ggmap(chicago)
-
-
 
 ```
 
@@ -132,8 +132,22 @@ ggmap(chicago)
 
 July<-df %>% filter(between(date, as.Date('2021-07-01'), as.Date('2021-07-31')))
 
-#I would be very happy to discuss about the code here.
-#Reach me out in linkedIn linkedin.com/in/syed-amjad-ali-a43666a6
+ggmap(chicago)+
+  geom_point(data=July,
+             aes(x=start_lng,
+                 y=start_lat),
+             alpha = 0.05,
+            
+             size=0.2)+
+ 
+   geom_point(data=July,
+             aes(x=end_lng,
+                 y=end_lat),
+             alpha = 0.05,
+             
+             size=0.2)+
+
+  theme_map()
 
 ```
 
@@ -141,6 +155,16 @@ July<-df %>% filter(between(date, as.Date('2021-07-01'), as.Date('2021-07-31')))
 **Bike rental density during July**
 
 
+```{r, echo=FALSE}
+ggmap(chicago) +
+  geom_segment(data = July,
+               aes(x = start_lng, y = start_lat, xend = end_lng, yend = end_lat),
+               color = "blue",
+               linewidth = 0.5,  # Use linewidth instead of size
+               alpha = 0.5) +
+  theme_map() +
+  labs(title = "Bike Journeys in Chicago - July 2021")
+```
 
 
 
@@ -148,8 +172,23 @@ July<-df %>% filter(between(date, as.Date('2021-07-01'), as.Date('2021-07-31')))
 ```{r, echo=FALSE}
 December<- df %>% filter(date > '2021-12-01')
 
-#I would be very happy to discuss about the code here.
-#Reach me out in linkedIn linkedin.com/in/syed-amjad-ali-a43666a6
+
+ggmap(chicago)+
+  geom_point(data=December,
+             aes(x=start_lng,
+                 y=start_lat),
+             alpha = 0.05,
+            
+             size=0.2)+
+ 
+   geom_point(data=December,
+             aes(x=end_lng,
+                 y=end_lat),
+             alpha = 0.05,
+             
+             size=0.2)+
+
+  theme_map()
 
 ```
 
