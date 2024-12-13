@@ -1,9 +1,8 @@
 # Cyclistic Bike Sharing: 2021
 
 ## Overview
-Welcome to the *Cyclistic Bike Sharing: 2021* project, a data analytics capstone I completed during the Google Data Analytics Professional Certificate. This project demonstrates my ability to handle large datasets, clean and preprocess data, perform insightful analysis, and visualize findings to support business decisions.
-
-The analysis focuses on understanding how annual members and casual riders use Cyclistic bikes differently to inform marketing strategies that convert casual riders into annual members.
+Welcome to the *Cyclistic Bike Sharing: 2021* project, a data analytics capstone I completed during the Google Data Analytics Professional Certificate. I handled a large dataset, cleaning and preprocessing the data to uncover key insights. By performing in-depth analysis and creating compelling visualizations, I supported Cyclistic’s goal of understanding how annual members and casual riders use bikes differently. 
+These insights were used to inform marketing strategies to convert casual riders into annual members.
 
 ## Business Task
 **How do annual members and casual riders use Cyclistic bikes differently?**
